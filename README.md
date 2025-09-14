@@ -1,18 +1,3 @@
-🔹 Módulo 7: Configuración post-instalación
-    • Crear usuario normal y darle privilegios (sudo).
-    • Instalar y habilitar gestor de red (ej: NetworkManager).
-    • Configurar actualizaciones iniciales (pacman -Syu).
-🔹 Módulo 8: Entorno gráfico
-    • Instalar servidor gráfico (Xorg o Wayland).
-    • Instalar escritorio (ej: GNOME).
-    • Instalar y habilitar gestor de display (ej: GDM).
-    • Probar login gráfico.
-🔹 Módulo 9: Personalización estilo macOS
-    • Instalar GNOME Tweaks y extensiones.
-    • Instalar temas visuales (WhiteSur, icnons, dock).
-    • Configurar atajos, fuentes y apariencia.
-
-
 Un paso a paso de como yo instalo arch linux
 
 Verificación de conexion a internet.
