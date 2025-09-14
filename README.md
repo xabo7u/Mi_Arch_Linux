@@ -1,201 +1,135 @@
-Un paso a paso de cómo yo instalo Arch Linux
-Verificación de conexión a internet
-
-En caso de usar cable Ethernet ya deberías estar conectado de forma automática, podés verificar usando:
-
-ip a
-
-
-En caso de no usar cable Ethernet, deberás conectarte a través de WiFi con la herramienta iwctl, que ya viene instalada en Arch.
-
-Entramos a la herramienta:
-
-iwctl
-
-
-Listamos los dispositivos:
-
-device list
+🔹 Módulo 7: Configuración post-instalación
+    • Crear usuario normal y darle privilegios (sudo).
+    • Instalar y habilitar gestor de red (ej: NetworkManager).
+    • Configurar actualizaciones iniciales (pacman -Syu).
+🔹 Módulo 8: Entorno gráfico
+    • Instalar servidor gráfico (Xorg o Wayland).
+    • Instalar escritorio (ej: GNOME).
+    • Instalar y habilitar gestor de display (ej: GDM).
+    • Probar login gráfico.
+🔹 Módulo 9: Personalización estilo macOS
+    • Instalar GNOME Tweaks y extensiones.
+    • Instalar temas visuales (WhiteSur, icnons, dock).
+    • Configurar atajos, fuentes y apariencia.
 
 
-Nos debería mostrar algo como wlan0.
+Un paso a paso de como yo instalo arch linux
 
-Escaneamos redes:
+Verificación de conexion a internet.
+En caso de usar cable ethernet ya deberias de estar conectado a internet de forma automatica, podes verificar usando ip a.
 
-station wlan0 scan
-station wlan0 get-networks
+En caso de no estar usando cable ethernet deberas conectarte a traves de wifi con la herramienta iwctl que ya viene instalada en arch. 
 
-
-Para conectarnos:
-
-station wlan0 connect NOMBRE_RED
+Entremos a la herramienta usando iwctl, listamos los dispositivos con device list y nos deberia de mostrar algo como wlan0. Escaneamos redes con station wlan0 scan, vemos las redes disponibles station wlan0 get-networks, para conectarnos usamos station wlan0 connect NOMBRE_RED, te pedira la contraseña, luego salimos con exit, y probamos conexion ping -c 3 archlinux.org.
 
 
-Te pedirá la contraseña.
+Verificación y cambio de hora en el dispositivo.
+Usando el comando timedatectl status, veremos: Local Time, Universal Time, RTC Time, System clock synchronized, NTP service, RTC in local TZ.
+En mi caso pone que estoy en UTC 0 y claramente no es asi. 
 
-Salimos con exit y probamos la conexión:
+Para ver que zonas horarias hay usamos timedatectl list-timezones, Si le agregamos un grep para filtrar mejor, timedatectl list-timezones | grep Montevideo.
 
-ping -c 3 archlinux.org
+Una vez identificada la zona horaria utilizamos timedatectl set-timezone America/Montevideo en mi caso, toma un ratito en actualizarse. Luego verificamos con timedatectl status.
 
-Verificación y cambio de hora
+Particionado de disco.
 
-Verificamos la hora:
+Los discos se asignan a un dispositivo de bloque como /dev/sda o /dev/nvme0n1. Para identificar los dispositivos utilizamos lsblk o fdisk.
 
-timedatectl status
+Voy a utilizar fdisk -l, con el mismo listaremos lo anteriormente dicho. Los resultados que terminen en rom, loop o airootfs pueden ignorarse al igual que boot0, boot1.
 
+Una vez identificado el disco a utilizar, usamos fdisk /dev/sda en mi caso. Yo voy a armar 4 particiones, la raiz /, la particion de arranque /boot, el swap [swap], y la particion home /home.
 
-Nos mostrará: Local Time, Universal Time, RTC Time, System clock synchronized, NTP service, RTC in local TZ.
+Usando n creamos una nueva particion. Nos dara una serie de preguntas: si queremos que sea particion primaria o extendida y elegiremos primaria “p”, en partition number le pondremos el que uno quiera yo lo dejare default 1 y a medida que agregemos mas particiones ese numero crece de forma automatica, en primer sector daremos enter sin mas, y en el ultimo sector le pondremos el tamaño que queramos por ejemplo +20G. Con “p” verificamos las particiones creadas y con “w” escribimos los cambios en el disco, si algo no te parecio correcto usas “q”, para salir sin borrar cambios o usas “m” para ver el resto de opciones de fdisk.
 
-Para ver zonas horarias disponibles:
-
-timedatectl list-timezones
-timedatectl list-timezones | grep Montevideo
-
-
-Definimos la zona horaria:
-
-timedatectl set-timezone America/Montevideo
-
-
-Luego confirmamos:
-
-timedatectl status
-
-Particionado de disco
-
-Los discos se asignan a un dispositivo de bloque como /dev/sda o /dev/nvme0n1. Para identificarlos:
-
-lsblk
-fdisk -l
-
-
-Los resultados que terminen en rom, loop o airootfs pueden ignorarse, al igual que boot0, boot1.
-
-Elegimos el disco:
-
-fdisk /dev/sda
-
-
-Crear 4 particiones: / (raíz), /boot (arranque), swap y /home.
-
-Comando n para nueva partición.
-
-Primaria: p.
-
-Partition number: default 1.
-
-Primer sector: enter.
-
-Último sector: tamaño deseado, ej. +20G.
-
-p para verificar.
-
-w para escribir cambios, q para salir sin guardar, m para ver más opciones.
+En mi caso usare dos discos, entonces en el primer disco creo 3 particiones, 1G para la particion /boot aunque con 512Mb serian suficientes me gusta darle de mas. 32G al swap que es el doble de mi ram y lo que sobra se lo dejo a la raiz. En el otro disco armo una sola particion primaria usando todo el espacio del disco, que esa sera para el /home.
 
 Mis particiones:
-
 /boot → directorio de arranque → 1G
+​/ → directorio raiz → 190G
+/home → directorio de usuario → 235G 
+swap → particion de intercambio → 32G
 
-/ → directorio raíz → 190G
+Dandole formato a las particiones: 
 
-/home → directorio de usuario → 235G
+A las particiones se les debe dar formato, yo al directorio raiz y directorio de usuario les dare ext4, a la particion de arranque fat32 y a la particion swap formato swap.
+Para el sistema de archivos ext4:
+mkfs.ext4 /dev/sda3
+Para el sistema de archivos fat32:
+mkfs.fat -F 32 /dev/sda1
+Para el swap:
+mkswap /dev/sda2
 
-swap → partición de intercambio → 32G
+Montar los sistemas de archivo: 
 
-Dándole formato a las particiones
-mkfs.ext4 /dev/sda3       # Raíz
-mkfs.fat -F 32 /dev/sda1  # /boot (EFI)
-mkswap /dev/sda2           # Swap
-mkfs.ext4 /dev/sdb1       # /home
-
-Montar los sistemas de archivos
+Para comenzar hay que montar el volumen raiz en /mnt, con el  comando mount:
 mount /dev/sda3 /mnt
-mount -o mkdir /dev/sda1 /mnt/boot/efi
-mount -o mkdir /dev/sdb1 /mnt/home
+mount –mkdir /dev/sda1 /mnt/boot/efi
+mount –mkdir /dev/sdb1 /mnt/home
 swapon /dev/sda2
 
+En caso de tu pc no soporte efi montar la particion /boot simplemente en /mnt/boot
+Instalar paquetes esenciales:
 
-En caso de que tu PC no soporte EFI, montar /boot directamente en /mnt/boot.
-
-Instalar paquetes esenciales
-
-Pacstrap instala el paquete base, kernel y firmware:
+Utilizamos pacstrap para instalar el paquete base, un kernel y un firmware de hardware comun, pacstrap es una herramienta de arch usada durante la instalacion de paquetes en un sistema recien montado.
+El kernel es el nucleo del sistema operativo, encargado de la comunicacion entre hardware y software.
+El kernel a usar depende del uso, el kernel linux es el ultimo con todas las mejoras disponibles pero puede ser propenso a fallos en cambio el kernel-lts es mas estable pero no va a tener las ultimas mejoras.
 
 pacstrap -K /mnt base linux-firmware linux
 
+Ademas agregaremos herramientas que nos podrian servir mas adelante y otro tipo de cosas ejemplos: actualizaciones de microcodigo de la CPU (amd-ucode o intel-ucode), NetworkManager, vim, man-db, man-pages, sudo, bash-completion, base-devel. 
 
-pacstrap es una herramienta de Arch usada durante la instalación de paquetes en un sistema recién montado.
-
-El kernel es el núcleo del sistema operativo, encargado de la comunicación entre hardware y software.
-
-Elección del kernel:
-
-linux → último kernel con mejoras pero puede ser propenso a fallos.
-
-linux-lts → más estable pero sin las últimas mejoras.
-
-Paquetes adicionales recomendados:
-
+Todo junto queda algo asi: 
 pacstrap -K /mnt base linux-firmware linux amd-ucode networkmanager vim man-db man-pages sudo bash-completion base-devel
 
-Generar el archivo fstab
+Generar el archivo fstab:
+
+fstab se utiliza para generar un archivo de configuración que le indica al sistema Linux qué particiones montar, dónde montarlas y con qué opciones, cada vez que arranca.
+
 genfstab -U /mnt >> /mnt/etc/fstab
 
+Chroot:
+Cambia la raiz al nuevo sistema instalado, permitiendote trabajar como si ya estuvieras dentro de el. Esto es necesario para configurar el sistema, instalar el bootloader, crear usuarios, etc.
 
-fstab indica qué particiones montar, dónde y con qué opciones cada vez que arranca el sistema.
-
-Chroot
 arch-chroot /mnt
 
+Definir zona horaria:
 
-Cambia la raíz al nuevo sistema instalado, permitiéndote trabajar como si ya estuvieras dentro de él.
-
-Definir zona horaria
 ln -sf /usr/share/zoneinfo/Region/Ciudad /etc/localtime
-hwclock --systohc
+En los los nombre de region y ciudad deben de ser cambiados por ejemplo America/Montevideo.
 
+Luego ejecutamos:
+hwclock –systohc
+Para generar el archivo /etc/adjtime, este archivo mantiene informacion sobre el reloj del harward (RTC) y como se debe de ajustar la hora del sistema. Al final confirmamos con el comando timedatectl status.
 
-/etc/adjtime se genera automáticamente y mantiene información sobre el reloj del hardware (RTC).
+Idioma del sistema:
 
-Confirmar con:
+Por defecto el idioma y la distribucion del teclado estan en ingles (US), en mi caso lo voy a dejar como esta. Si uno quiere cambiarlo, puede hacerlo de la siguiente forma:
+Edite el archivo /etc/locale.gen y descomente el locale necesario ejemplo es_ES.UTF-8 UTF-8.
+Cree el archivo locale.conf y defina la variable LANG: vim /etc/locale.conf  y dentro del mismo escribir LANG=es_ES.UTF-8.
+Si fuese necesario defina la distribucion del teclado en vconsole.conf,  vim /etc/vconsole.conf y escribimos KEYMAP=es.
 
-timedatectl status
+Configurar hostname:
 
-Idioma del sistema
+Cree el archivo hostname:
+vim /etc/hostname → nombre de su equipo
 
-Por defecto, el idioma y la distribución del teclado están en inglés (US).
+Establecer contraseña root:
 
-Si querés cambiarlo:
-
-vim /etc/locale.gen       # Descomentar locale deseado, ej. es_ES.UTF-8 UTF-8
-vim /etc/locale.conf      # LANG=es_ES.UTF-8
-vim /etc/vconsole.conf    # KEYMAP=es (opcional)
-
-Configurar hostname
-vim /etc/hostname         # Nombre de tu equipo
-
-Establecer contraseña root
 passwd
 
-Instalar gestor de arranque
+Instalar gestor de arranque:
+
 pacman -S grub efibootmgr
 
+Si estas usando BIOS tradicional solo es necesario grub.
 
-Solo grub si usás BIOS tradicional.
-
-GRUB en UEFI
+Instalar GRUB en UEFI:
 grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=GRUB
 
-GRUB en BIOS (Legacy)
+Instalar GRUB en BIOS (Legacy):
 grub-install --target=i386-pc /dev/sda
 
-
-Generar archivo de configuración de GRUB:
-
+Generar el archivo configuracion: 
 grub-mkconfig -o /boot/grub/grub.cfg
 
-Reboot
-reboot
-
-
-¡Y listo! 😄
+Y ahora hacer un reboot :(
