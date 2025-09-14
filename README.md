@@ -1,4 +1,4 @@
-#Un paso a paso de como yo instalo arch linux
+Un paso a paso de como yo instalo arch linux
 
 Verificación de conexion a internet.
 En caso de usar cable ethernet ya deberias de estar conectado a internet de forma automatica, podes verificar usando ip a.
