@@ -118,3 +118,35 @@ Generar el archivo configuracion:
 grub-mkconfig -o /boot/grub/grub.cfg
 
 Y ahora hacer un reboot :(
+
+Crear el usuario: 
+useradd -m -G wheel -s /bin/bash usuario
+passwd usuario
+
+Para dar permisos sudo al grupo wheel:
+EDITOR=vim visudo
+Y decomentamos la linea:
+%wheel ALL=(ALL:ALL) ALL
+Instalamos networkmanager:
+pacman -S networkmanager
+
+systemctl enable NetworkManager
+systemctl start NetworkManager
+
+Actualizamos todo:
+pacman -Syu
+Total mente opcional:
+pacman -S git wget curl htop zip unzip
+
+Instalacion de entorno grafico GNOME:
+Servidor grafico, el mas usado es Xorg e instalaremos este:
+pacman -S xorg xorg-xinit
+
+Como entorno de escritorio usaremos GNOME:
+pacman -S gnome gnome-extra
+
+Y como gestor de display gdm:
+pacman -S gdm
+systemctl enable gdm
+
+Y le haremos otro reboot, una vez hecho tenemos un linux basico funcional con entorno de escritorio gnome.
